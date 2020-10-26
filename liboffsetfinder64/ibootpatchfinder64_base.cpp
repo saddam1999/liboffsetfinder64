@@ -166,6 +166,46 @@ std::vector<patch> ibootpatchfinder64_base::get_sigcheck_patch(){
     return patches;
 }
 
+std::vector<patch> ibootpatchfinder64_base::get_kernelcache_patch(){
+    std::vector<patch> patches;    
+
+    loc_t kernelcache_string = findstr("/System/Library/Caches/com.apple.kernelcaches/kernelcache", true);
+   debug("kernelcache_string=%p\n", kernelcache_string);
+   const char patch[] = "\x2f\x53\x79\x73" "\x74\x65\x6d\x2f" "\x4c\x69\x62\x72" "\x61\x72\x79\x2f" "\x43\x61\x63\x68" "\x65\x73\x2f\x63" "\x6f\x6d\x2e\x61" "\x70\x70\x6c\x65" "\x2e\x6b\x65\x72" "\x6e\x65\x6c\x63" "\x61\x63\x68\x65" "\x73\x2f\x6b\x65" "\x72\x6e\x65\x6c" "\x63\x61\x63\x68" "\x62";
+   patches.push_back({kernelcache_string,patch,sizeof(patch)-1});
+
+    return patches;
+}
+
+std::vector<patch> ibootpatchfinder64_base::get_bootmode_patch(){
+    std::vector<patch> patches;    
+      if(_vers<=4513) {
+        return get_bootmode_patch_12();
+    }
+
+    loc_t findshit = _vmem->memmem("\x1F\x00\x00\x71\xE0\x07\x9F\x1A\xFD\x7B\xC1\xA8\xC0\x03\x5F\xD6", 16);
+    debug("findstuff=%p\n", findshit);
+    loc_t find_sub = find_bof(findshit);
+
+    const char p[] ="\x00\x00\x80\x52" /*mov w0,0*/ "\xC0\x03\x5F\xD6" /*ret*/;
+    patches.push_back({find_sub,p,sizeof(p)-1});
+
+   return patches;
+}
+
+std::vector<patch> ibootpatchfinder64_base::get_bootmode_patch_12(){
+   std::vector<patch> patches; 
+
+   loc_t findshit = _vmem->memmem("\x1F\x00\x00\x71\xE0\x07\x9F\x1A\xC0\x03\x5F\xD6", 12);
+    debug("findstuff=%p\n", findshit);
+    loc_t find_sub = find_bof(findshit);
+
+    const char p[] ="\x00\x00\x80\x52" /*mov w0,0*/ "\xC0\x03\x5F\xD6" /*ret*/;
+    patches.push_back({find_sub,p,sizeof(p)-1});
+
+  return patches;
+}
+
 std::vector<patch> ibootpatchfinder64_base::get_boot_arg_patch(const char *bootargs){
     std::vector<patch> patches;
     loc_t default_boot_args_str_loc = 0;
