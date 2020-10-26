@@ -46,6 +46,12 @@ namespace tihmstar {
                 //
              */
             virtual std::vector<patch> get_debug_enabled_patch() override;
+            virtual std::vector<patch> get_kernelcache_patch() override;
+            virtual std::vector<patch> get_bootmode_patch() override;
+            virtual std::vector<patch> get_bootmode_patch_12() override;
+            
+            
+            
             
             /*
                make an iBoot command jump to a specific address
